@@ -1,4 +1,4 @@
-"""This module contains necessary function needed"""
+"""This module contains necessary functions needed for loading data, training models, and making predictions."""
 
 # Import necessary modules
 import numpy as np
@@ -6,43 +6,55 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 import streamlit as st
 
-
-@st.cache_data()
+@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def load_data():
-    """This function returns the preprocessed data"""
-
-    # Load the Diabetes dataset into DataFrame.
+    """Load the Diabetes dataset into a DataFrame, perform feature and target split.
+    
+    Returns:
+        tuple: DataFrame, Features DataFrame, Target Series.
+    """
     df = pd.read_csv('diabetes.csv')
-
-    # Perform feature and target split
-    X = df[["Pregnancies","FastingGlc","AfterGlc","BloodPressure","SkinThickness","Insulin", "BMI", "GeneticCorr", "Age"]]
+    X = df[["Pregnancies", "FastingGlc", "AfterGlc", "BloodPressure", "SkinThickness", "Insulin", "BMI", "GeneticCorr", "Age"]]
     y = df['Outcome']
 
-    return df, X, y
+    # Optionally, return a copy to avoid unexpected side effects
+    return df.copy(), X.copy(), y.copy()
 
-@st.cache_data()
+@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def train_model(X, y):
-    """This function trains the model and return the model and model score"""
-    # Create the model
+    """Train a decision tree classifier with specified parameters and return the model and its accuracy score.
+    
+    Args:
+        X (DataFrame): Feature set.
+        y (Series): Target values.
+
+    Returns:
+        tuple: Trained model, accuracy score.
+    """
     model = DecisionTreeClassifier(
-            ccp_alpha=0.0, class_weight=None, criterion='entropy',
-            max_depth=4, max_features=None, max_leaf_nodes=None,
-            min_impurity_decrease=0.0, min_samples_leaf=1, 
-            min_samples_split=2, min_weight_fraction_leaf=0.0,
-            random_state=42, splitter='best'
-        )
-    # Fit the data on model
+        ccp_alpha=0.0, class_weight=None, criterion='entropy',
+        max_depth=4, max_features=None, max_leaf_nodes=None,
+        min_impurity_decrease=0.0, min_samples_leaf=1, 
+        min_samples_split=2, min_weight_fraction_leaf=0.0,
+        random_state=42, splitter='best'
+    )
     model.fit(X, y)
-    # Get the model score
     score = model.score(X, y)
 
-    # Return the values
     return model, score
 
 def predict(X, y, features):
-    # Get model and model score
+    """Predict the outcome for a new sample using a trained model.
+    
+    Args:
+        X (DataFrame): Feature set.
+        y (Series): Target values.
+        features (list): Input features for which prediction is needed.
+
+    Returns:
+        tuple: Prediction result, model score.
+    """
     model, score = train_model(X, y)
-    # Predict the value
     prediction = model.predict(np.array(features).reshape(1, -1))
 
     return prediction, score
